@@ -17,6 +17,14 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
+type ListGlobalSecurityAdvisoriesResult struct {
+	Advisories []*github.GlobalSecurityAdvisory `json:"advisories"`
+}
+
+type ListRepositorySecurityAdvisoriesResult struct {
+	Advisories []*github.SecurityAdvisory `json:"advisories"`
+}
+
 func ListGlobalSecurityAdvisories(t translations.TranslationHelperFunc) inventory.ServerTool {
 	return NewTool(
 		ToolsetMetadataSecurityAdvisories,
@@ -83,9 +91,29 @@ func ListGlobalSecurityAdvisories(t translations.TranslationHelperFunc) inventor
 					},
 				},
 			},
+			OutputSchema: &jsonschema.Schema{
+				Type: "object",
+				Properties: map[string]*jsonschema.Schema{
+					"advisories": {
+						Type: "array",
+						Items: &jsonschema.Schema{
+							Type: "object",
+							Properties: map[string]*jsonschema.Schema{
+								"ghsa_id":     {Type: "string"},
+								"cve_id":      {Type: "string"},
+								"html_url":    {Type: "string"},
+								"summary":     {Type: "string"},
+								"description": {Type: "string"},
+								"severity":    {Type: "string"},
+								"type":        {Type: "string"},
+							},
+						},
+					},
+				},
+			},
 		},
 		[]scopes.Scope{scopes.SecurityEvents},
-		func(ctx context.Context, deps ToolDependencies, _ *mcp.CallToolRequest, args map[string]any) (*mcp.CallToolResult, any, error) {
+		func(ctx context.Context, deps ToolDependencies, _ *mcp.CallToolRequest, args map[string]any) (*mcp.CallToolResult, *ListGlobalSecurityAdvisoriesResult, error) {
 			client, err := deps.GetClient(ctx)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to get GitHub client: %w", err)
@@ -203,7 +231,7 @@ func ListGlobalSecurityAdvisories(t translations.TranslationHelperFunc) inventor
 				return nil, nil, fmt.Errorf("failed to marshal advisories: %w", err)
 			}
 
-			return utils.NewToolResultText(string(r)), nil, nil
+			return utils.NewToolResultText(string(r)), &ListGlobalSecurityAdvisoriesResult{Advisories: advisories}, nil
 		},
 	)
 }
@@ -247,9 +275,29 @@ func ListRepositorySecurityAdvisories(t translations.TranslationHelperFunc) inve
 				},
 				Required: []string{"owner", "repo"},
 			},
+			OutputSchema: &jsonschema.Schema{
+				Type: "object",
+				Properties: map[string]*jsonschema.Schema{
+					"advisories": {
+						Type: "array",
+						Items: &jsonschema.Schema{
+							Type: "object",
+							Properties: map[string]*jsonschema.Schema{
+								"ghsa_id":     {Type: "string"},
+								"cve_id":      {Type: "string"},
+								"html_url":    {Type: "string"},
+								"summary":     {Type: "string"},
+								"description": {Type: "string"},
+								"severity":    {Type: "string"},
+								"state":       {Type: "string"},
+							},
+						},
+					},
+				},
+			},
 		},
 		[]scopes.Scope{scopes.SecurityEvents},
-		func(ctx context.Context, deps ToolDependencies, _ *mcp.CallToolRequest, args map[string]any) (*mcp.CallToolResult, any, error) {
+		func(ctx context.Context, deps ToolDependencies, _ *mcp.CallToolRequest, args map[string]any) (*mcp.CallToolResult, *ListRepositorySecurityAdvisoriesResult, error) {
 			owner, err := RequiredParam[string](args, "owner")
 			if err != nil {
 				return utils.NewToolResultError(err.Error()), nil, nil
@@ -307,7 +355,7 @@ func ListRepositorySecurityAdvisories(t translations.TranslationHelperFunc) inve
 				return nil, nil, fmt.Errorf("failed to marshal advisories: %w", err)
 			}
 
-			return utils.NewToolResultText(string(r)), nil, nil
+			return utils.NewToolResultText(string(r)), &ListRepositorySecurityAdvisoriesResult{Advisories: advisories}, nil
 		},
 	)
 }
@@ -332,9 +380,21 @@ func GetGlobalSecurityAdvisory(t translations.TranslationHelperFunc) inventory.S
 				},
 				Required: []string{"ghsaId"},
 			},
+			OutputSchema: &jsonschema.Schema{
+				Type: "object",
+				Properties: map[string]*jsonschema.Schema{
+					"ghsa_id":     {Type: "string"},
+					"cve_id":      {Type: "string"},
+					"html_url":    {Type: "string"},
+					"summary":     {Type: "string"},
+					"description": {Type: "string"},
+					"severity":    {Type: "string"},
+					"type":        {Type: "string"},
+				},
+			},
 		},
 		[]scopes.Scope{scopes.SecurityEvents},
-		func(ctx context.Context, deps ToolDependencies, _ *mcp.CallToolRequest, args map[string]any) (*mcp.CallToolResult, any, error) {
+		func(ctx context.Context, deps ToolDependencies, _ *mcp.CallToolRequest, args map[string]any) (*mcp.CallToolResult, *github.GlobalSecurityAdvisory, error) {
 			client, err := deps.GetClient(ctx)
 			if err != nil {
 				return nil, nil, fmt.Errorf("failed to get GitHub client: %w", err)
@@ -364,7 +424,7 @@ func GetGlobalSecurityAdvisory(t translations.TranslationHelperFunc) inventory.S
 				return nil, nil, fmt.Errorf("failed to marshal advisory: %w", err)
 			}
 
-			return utils.NewToolResultText(string(r)), nil, nil
+			return utils.NewToolResultText(string(r)), advisory, nil
 		},
 	)
 }
@@ -404,9 +464,29 @@ func ListOrgRepositorySecurityAdvisories(t translations.TranslationHelperFunc) i
 				},
 				Required: []string{"org"},
 			},
+			OutputSchema: &jsonschema.Schema{
+				Type: "object",
+				Properties: map[string]*jsonschema.Schema{
+					"advisories": {
+						Type: "array",
+						Items: &jsonschema.Schema{
+							Type: "object",
+							Properties: map[string]*jsonschema.Schema{
+								"ghsa_id":     {Type: "string"},
+								"cve_id":      {Type: "string"},
+								"html_url":    {Type: "string"},
+								"summary":     {Type: "string"},
+								"description": {Type: "string"},
+								"severity":    {Type: "string"},
+								"state":       {Type: "string"},
+							},
+						},
+					},
+				},
+			},
 		},
 		[]scopes.Scope{scopes.SecurityEvents},
-		func(ctx context.Context, deps ToolDependencies, _ *mcp.CallToolRequest, args map[string]any) (*mcp.CallToolResult, any, error) {
+		func(ctx context.Context, deps ToolDependencies, _ *mcp.CallToolRequest, args map[string]any) (*mcp.CallToolResult, *ListRepositorySecurityAdvisoriesResult, error) {
 			org, err := RequiredParam[string](args, "org")
 			if err != nil {
 				return utils.NewToolResultError(err.Error()), nil, nil
@@ -459,7 +539,7 @@ func ListOrgRepositorySecurityAdvisories(t translations.TranslationHelperFunc) i
 				return nil, nil, fmt.Errorf("failed to marshal advisories: %w", err)
 			}
 
-			return utils.NewToolResultText(string(r)), nil, nil
+			return utils.NewToolResultText(string(r)), &ListRepositorySecurityAdvisoriesResult{Advisories: advisories}, nil
 		},
 	)
 }
