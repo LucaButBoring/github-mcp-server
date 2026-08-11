@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -33,6 +34,9 @@ type ServerConfig struct {
 
 	// GitHub Host to target for API requests (e.g. github.com or github.enterprise.com)
 	Host string
+
+	// BindAddress is the network address to listen on. Empty listens on all interfaces.
+	BindAddress string
 
 	// Port to listen on (default: 8082)
 	Port int
@@ -161,7 +165,7 @@ func RunHTTPServer(cfg ServerConfig) error {
 	})
 	logger.Info("OAuth protected resource endpoints registered", "baseURL", cfg.BaseURL)
 
-	addr := fmt.Sprintf(":%d", cfg.Port)
+	addr := listenAddress(cfg.BindAddress, cfg.Port)
 	httpSvr := http.Server{
 		Addr:              addr,
 		Handler:           r,
@@ -190,6 +194,10 @@ func RunHTTPServer(cfg ServerConfig) error {
 
 	logger.Info("server stopped gracefully")
 	return nil
+}
+
+func listenAddress(bindAddress string, port int) string {
+	return net.JoinHostPort(bindAddress, fmt.Sprintf("%d", port))
 }
 
 func initGlobalToolScopeMap(t translations.TranslationHelperFunc) error {
